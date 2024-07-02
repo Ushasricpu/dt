@@ -22,32 +22,22 @@ ChartJS.register(
   Legend
 );
 
-const LineGraph = () => {
-  const data = [
-    { time: '08:00:00', tds: 150, id: 1 },
-    { time: '09:00:00', tds: 230, id: 2 },
-    { time: '10:00:00', tds: 310, id: 1 },
-    { time: '11:00:00', tds: 450, id: 1 },
-    { time: '12:00:00', tds: 560, id: 1 },
-    { time: '13:00:00', tds: 670, id: 2 },
-    { time: '14:00:00', tds: 780, id: 2 },
-    { time: '15:00:00', tds: 890, id: 2 },
-    { time: '16:00:00', tds: 910, id: 1 },
-    { time: '17:00:00', tds: 1020, id: 2 },
-  ];
+const LineGraph = ({ data }) => {
+  // Sort data by time if not already sorted
+  const sortedData = data.sort((a, b) => a.time.localeCompare(b.time));
 
   // Create an array of unique timestamps
-  const timestamps = Array.from(new Set(data.map(entry => entry.time)));
+  const timestamps = Array.from(new Set(sortedData.map(entry => entry.time)));
 
   // Generate chart data for each ID
   const chartData = {
-    labels: timestamps, // Use unique timestamps as labels
+    labels: timestamps,
     datasets: [
       {
         label: 'Soil',
         data: timestamps.map(time => {
-          const entry = data.find(item => item.time === time && item.id === 1);
-          return entry ? entry.tds : null; // Use null for missing data
+          const entry = sortedData.find(item => item.time === time && item.id === 1);
+          return entry ? entry.tds : null;
         }),
         borderColor: 'rgba(75, 192, 192, 1)',
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
@@ -56,8 +46,8 @@ const LineGraph = () => {
       {
         label: 'TDS',
         data: timestamps.map(time => {
-          const entry = data.find(item => item.time === time && item.id === 2);
-          return entry ? entry.tds : null; // Use null for missing data
+          const entry = sortedData.find(item => item.time === time && item.id === 2);
+          return entry ? entry.tds : null;
         }),
         borderColor: 'rgba(255, 205, 86, 1)',
         backgroundColor: 'rgba(255, 205, 86, 0.2)',
@@ -65,6 +55,9 @@ const LineGraph = () => {
       },
     ],
   };
+
+  // Debugging: Log the chartData to ensure it's structured correctly
+  console.log(chartData);
 
   const options = {
     responsive: true,
