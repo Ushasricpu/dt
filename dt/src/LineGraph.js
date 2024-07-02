@@ -1,4 +1,3 @@
-// src/LineGraph.js
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import {
@@ -23,37 +22,42 @@ ChartJS.register(
 );
 
 const LineGraph = ({ data }) => {
-  // Sort data by time if not already sorted
-  const sortedData = data.sort((a, b) => a.time.localeCompare(b.time));
+  // Separate data for ID1 and ID2
+  const id1Data = data.filter(entry => entry.id === 1);
+  const id2Data = data.filter(entry => entry.id === 2);
 
-  // Create an array of unique timestamps
-  const timestamps = Array.from(new Set(sortedData.map(entry => entry.time)));
+  // Extract timestamps for ID1 and ID2
+  const id1Timestamps = id1Data.map(entry => entry.time);
+  const id2Timestamps = id2Data.map(entry => entry.time);
 
-  // Generate chart data for each ID
+  // Combine all unique timestamps and sort them chronologically
+  const timestamps = Array.from(new Set([...id1Timestamps, ...id2Timestamps])).sort();
+
+  // Function to create datasets for each ID
+  const createDataset = (id, timestamps) => {
+    const dataPoints = timestamps.map(time => {
+      const entry = data.find(item => item.id === id && item.time === time);
+      return entry ? entry.tds : null; // Return tds or null if no data
+    });
+
+    return {
+      label: `ID ${id}`,
+      data: dataPoints,
+      borderColor: id === 1 ? 'rgba(75, 192, 192, 1)' : 'rgba(255, 205, 86, 1)',
+      backgroundColor: id === 1 ? 'rgba(75, 192, 192, 0.2)' : 'rgba(255, 205, 86, 0.2)',
+      fill: false,
+      spanGaps: true, // Connect lines across null values
+    };
+  };
+
+  const datasets = [
+    createDataset(1, timestamps),
+    createDataset(2, timestamps),
+  ];
+
   const chartData = {
     labels: timestamps,
-    datasets: [
-      {
-        label: 'Soil',
-        data: timestamps.map(time => {
-          const entry = sortedData.find(item => item.time === time && item.id === 1);
-          return entry ? entry.tds : null;
-        }),
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        fill: false,
-      },
-      {
-        label: 'TDS',
-        data: timestamps.map(time => {
-          const entry = sortedData.find(item => item.time === time && item.id === 2);
-          return entry ? entry.tds : null;
-        }),
-        borderColor: 'rgba(255, 205, 86, 1)',
-        backgroundColor: 'rgba(255, 205, 86, 0.2)',
-        fill: false,
-      },
-    ],
+    datasets: datasets,
   };
 
   // Debugging: Log the chartData to ensure it's structured correctly
@@ -61,20 +65,19 @@ const LineGraph = ({ data }) => {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // Allows custom width and height
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top',
         labels: {
-          // Adjust legend labels here
-          boxWidth: 10, // Width of the colored box next to label
-          padding: 10, // Padding between labels
-          usePointStyle: true, // Use a circular point style
+          boxWidth: 10,
+          padding: 10,
+          usePointStyle: true,
         },
       },
       title: {
         display: true,
-        text: 'Soil and TDS Values VS Time',
+        text: 'TDS Values VS Time',
       },
     },
     scales: {
@@ -89,6 +92,11 @@ const LineGraph = ({ data }) => {
           display: true,
           // text: 'TDS Value',
         },
+      },
+    },
+    elements: {
+      line: {
+        tension: 0, // Ensure straight lines between points
       },
     },
   };
